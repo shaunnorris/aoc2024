@@ -1,5 +1,4 @@
 from aoclib import read_file_lines, transpose
-import re
 
 def test_count_string():
     assert count_string('XMAS','MMMSXXMASM') == 1
