@@ -53,3 +53,20 @@ grid = read_file_lines('day4-input.txt')
 
 part1 = count_all_strings(grid)
 print('part1:',part1)
+
+def test_count_xmas():
+    testgrid = read_file_lines('day4-test.txt')
+    assert count_xmas(testgrid) == 9
+    
+def count_xmas(grid):
+    xcount = 0
+    for i in range(len(grid)-2):
+        for j in range(len(grid[0])-2):
+            downrt = ''.join(grid[i][j] + grid[i+1][j+1] + grid[i+2][j+2])
+            upright = ''.join(grid[i+2][j] + grid[i+1][j+1] + grid[i][j+2])
+            if downrt in ['SAM','MAS'] and upright in ['SAM','MAS']:
+                xcount += 1
+    return xcount    
+
+part2 = count_xmas(grid)
+print('part2:',part2)
