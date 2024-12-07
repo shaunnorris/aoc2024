@@ -10,7 +10,7 @@ def find_start(lines):
         
 def test_walk_around():
     assert walk_around(read_file_lines('day6-test.txt')) == 41
-    assert walk_around(read_file_lines('day6-looptest.txt')) == 0
+    assert walk_around(read_file_lines('day6-loop-test.txt')) == 0
     
 def walk_around(grid):
     walked = []
