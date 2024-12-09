@@ -135,15 +135,18 @@ def test_compact_disk():
     ]
 
 
-def compact_disk(diskdata):
-    newdisk = diskdata[:]
+def compact_disk(newdisk):
     freespace = [i for i, x in enumerate(newdisk) if x == '.']
     while len(freespace) > 0:
         lastblock = newdisk.pop()
         if lastblock != '.':
             newdisk[freespace[0]] = lastblock
-        freespace = [i for i, x in enumerate(newdisk) if x == '.']
+        #freespace = [i for i, x in enumerate(newdisk) if x == '.']
+            freespace = freespace[1:]
+        else:
+            freespace.pop()
     return newdisk
+
 
 def test_get_checksum():
     assert (
@@ -188,9 +191,7 @@ def get_checksum(diskdata):
         checksum += value * index
     return checksum
 
-disk = unpack_disk(read_file_lines("day9-input.txt"))
-part1 = get_checksum(compact_disk(disk))
-print ('part1:',part1)
+
 
 def test_unpack_disk_two():
     assert unpack_disk_two(["12345"]) == {
@@ -319,6 +320,9 @@ def checksum_two(disk):
                 result += i * value['id']
     return result
 
-disk2 = unpack_disk_two(read_file_lines("day9-input.txt"))
-part2 = checksum_two(compact_disk_two(disk2))
-print('part2:',part2)
+disk = unpack_disk(read_file_lines("day9-input.txt"))
+part1 = get_checksum(compact_disk(disk))
+print ('part1:',part1)
+#disk2 = unpack_disk_two(read_file_lines("day9-input.txt"))
+#part2 = checksum_two(compact_disk_two(disk2))
+#print('part2:',part2)
