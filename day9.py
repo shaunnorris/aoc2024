@@ -141,7 +141,7 @@ def compact_disk(newdisk):
         lastblock = newdisk.pop()
         if lastblock != '.':
             newdisk[freespace[0]] = lastblock
-        #freespace = [i for i, x in enumerate(newdisk) if x == '.']
+            #freespace = [i for i, x in enumerate(newdisk) if x == '.'] == 100 x slower!! 
             freespace = freespace[1:]
         else:
             freespace.pop()
@@ -196,28 +196,28 @@ def get_checksum(diskdata):
 def test_unpack_disk_two():
     assert unpack_disk_two(["12345"]) == {
         "file0": {"block": 0, "size": 1, "id": 0},
-        "free101": {"block": 1, "size": 2},
+        "free10001": {"block": 1, "size": 2},
         "file2": {"block": 3, "size": 3, "id": 1},
-        "free103": {"block": 6, "size": 4},
+        "free10003": {"block": 6, "size": 4},
         "file4": {"block": 10, "size": 5, "id": 2},
     }
     assert unpack_disk_two(read_file_lines("day9-test.txt")) == {
         "file0": {"block": 0, "size": 2, "id": 0},
-        "free101": {"block": 2, "size": 3},
+        "free10001": {"block": 2, "size": 3},
         "file2": {"block": 5, "size": 3, "id": 1},
-        "free103": {"block": 8, "size": 3},
+        "free10003": {"block": 8, "size": 3},
         "file4": {"block": 11, "size": 1, "id": 2},
-        "free105": {"block": 12, "size": 3},
+        "free10005": {"block": 12, "size": 3},
         "file6": {"block": 15, "size": 3, "id": 3},
-        "free107": {"block": 18, "size": 1},
+        "free10007": {"block": 18, "size": 1},
         "file8": {"block": 19, "size": 2, "id": 4},
-        "free109": {"block": 21, "size": 1},
+        "free10009": {"block": 21, "size": 1},
         "file10": {"block": 22, "size": 4, "id": 5},
-        "free111": {"block": 26, "size": 1},
+        "free10011": {"block": 26, "size": 1},
         "file12": {"block": 27, "size": 4, "id": 6},
-        "free113": {"block": 31, "size": 1},
+        "free10013": {"block": 31, "size": 1},
         "file14": {"block": 32, "size": 3, "id": 7},
-        "free115": {"block": 35, "size": 1},
+        "free10015": {"block": 35, "size": 1},
         "file16": {"block": 36, "size": 4, "id": 8},
         "file18": {"block": 40, "size": 2, "id": 9},
     }
@@ -231,14 +231,36 @@ def unpack_disk_two(data):
             if index % 2 == 0:
                 disk['file'+str(index)] = {'block': blockindex, 'size': int(char), 'id': index // 2}
             else:
-                disk['free'+str(100 + index )] = {'block': blockindex, 'size': int(char)} 
+                disk['free'+str(10000 + index )] = {'block': blockindex, 'size': int(char)} 
         blockindex += int(char)
     return disk
 
 def test_compact_disk_two():
     testdisk = unpack_disk_two(read_file_lines("day9-test.txt"))
-    #assert compact_disk_two(testdisk) == {}
-    
+    assert compact_disk_two(testdisk) == {
+        "file0": {"block": 0, "size": 2, "id": 0},
+        "free10001": {"block": 11, "size": 1},
+        "file2": {"block": 5, "size": 3, "id": 1},
+        "free10003": {"block": 32, "size": 3},
+        "file4": {"block": 4, "size": 1, "id": 2},
+        "free10005": {"block": 14, "size": 1},
+        "file6": {"block": 15, "size": 3, "id": 3},
+        "free10007": {"block": 18, "size": 1},
+        "file8": {"block": 12, "size": 2, "id": 4},
+        "free10009": {"block": 21, "size": 1},
+        "file10": {"block": 22, "size": 4, "id": 5},
+        "free10011": {"block": 26, "size": 1},
+        "file12": {"block": 27, "size": 4, "id": 6},
+        "free10013": {"block": 31, "size": 1},
+        "file14": {"block": 8, "size": 3, "id": 7},
+        "free10015": {"block": 35, "size": 1},
+        "file16": {"block": 36, "size": 4, "id": 8},
+        "file18": {"block": 2, "size": 2, "id": 9},
+        "free10016": {"block": 40, "size": 2},
+        "free10017": {"block": 19, "size": 2},
+    }
+
+
 def compact_disk_two(disk):
     sorted_files = (
         key
@@ -323,6 +345,6 @@ def checksum_two(disk):
 disk = unpack_disk(read_file_lines("day9-input.txt"))
 part1 = get_checksum(compact_disk(disk))
 print ('part1:',part1)
-#disk2 = unpack_disk_two(read_file_lines("day9-input.txt"))
-#part2 = checksum_two(compact_disk_two(disk2))
-#print('part2:',part2)
+disk2 = unpack_disk_two(read_file_lines("day9-input.txt"))
+part2 = checksum_two(compact_disk_two(disk2))
+print('part2:',part2)
