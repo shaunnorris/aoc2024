@@ -25,3 +25,12 @@ def transpose(strings):
     zipped = zip(*strings)
     transposed = [''.join(group) for group in zipped]
     return transposed
+
+def get_mapsize(grid):
+    return (len(grid)-1, len(grid[0])-1)
+
+def in_bounds(coord,mapsize):
+    return coord[0] >= 0 and coord[0] <= mapsize[0] and coord[1] >= 0 and coord[1] <= mapsize[1]
+
+def tuple_add(t1,t2):
+    return tuple(a + b for a, b in zip(t1, t2))
