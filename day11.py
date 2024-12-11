@@ -2,8 +2,6 @@ from aoclib import read_file_lines
 
 testrocks = [125, 17]
 
-
-
 def test_blink():
     assert blink(125) == (253000,None)
     assert blink(0) == (1,None)
@@ -19,36 +17,35 @@ def blink(rock):
         return (rock1,rock2)
     else:
         return (rock * 2024, None)
-    
-def test_blink_row():
-    assert blink_row(testrocks) == [253000, 1, 7]
-
-def blink_row(rocks):
-    newrow = []
-    for rock in rocks:
-        rock = int(rock)
-        newrocks = blink(rock)
-        for newrock in newrocks:
-            if newrock != None:
-                newrow.append(newrock)
-    return newrow
 
 def test_multi_blink():
-    assert len(multi_blink(testrocks,25)) == 55312
+    assert multi_blink(testrocks,25) == 55312
     
 def multi_blink(rocks,n):
-    current_row = rocks
+    rockcount = {}
+    for rock in rocks:
+        if rock in rockcount.keys():
+            rockcount[rock] += 1
+        else:
+            rockcount[rock] = 1
+
     for i in range(n):
-        nextrow = blink_row(current_row)
-        current_row = nextrow
-        print(i, len(current_row))
-    return current_row
+        nextcount = {}
+        current_row = list(rockcount.keys())
+        for rock in current_row:
+            next_rocks = blink(rock)
+            for newrock in next_rocks:
+                if newrock != None:
+                    if newrock in nextcount.keys():
+                        nextcount[newrock] += 1 * rockcount[rock]
+                    else:
+                        nextcount[newrock] = 1 * rockcount[rock]
+        rockcount = nextcount
+    return sum(rockcount.values())
 
-#rocksstr = read_file_lines('day11-input.txt')[0].split(" ")
-rocksstr = "0"
+rocksstr = read_file_lines('day11-input.txt')[0].split(" ")
 day11rocks = [int(s) for s in rocksstr]
-part1 = len(multi_blink(day11rocks,25))
+part1 = multi_blink(day11rocks,25)
 print('part1',part1)
-
 part2 = multi_blink(day11rocks,75)
 print('part2',part2)
