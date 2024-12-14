@@ -43,7 +43,7 @@ def test_check_pos():
         (6, 1): 1,
         (6, 6): 1,
     }
-    assert check_pos(testrobots,(11,7),100) == testpos
+    assert check_pos(testrobots,(7,11),100) == testpos
     
 def check_pos(robots,size,seconds):
     newpos = {}
@@ -51,8 +51,8 @@ def check_pos(robots,size,seconds):
         p, v = robot['p'], robot['v']
         dx, dy = v[0] * seconds, v[1] * seconds
         grossp = tuple_add(p, (dx, dy))
-        actualpx = (grossp[0] % size[0] + size[0]) % size[0]
-        actualpy = (grossp[1] % size[1] + size[1]) % size[1]
+        actualpx = (grossp[0] % size[1] + size[1]) % size[1]
+        actualpy = (grossp[1] % size[0] + size[0]) % size[0]
         if (actualpy,actualpx) in newpos:
             newpos[(actualpy,actualpx)] += 1
         else:
@@ -180,18 +180,17 @@ def flood_fill(coords_set, x, y):
 
 robots = get_robots(read_file_lines('day14-input.txt'))
 size = (103,101)
-rsize = (101,103)
-part1 = calc_safety(check_pos(robots,rsize,100),size)
+part1 = calc_safety(check_pos(robots,size,100),size)
 print('part1:',part1)
 
 def find_tree():
   
     for s in range(10000):
-        pos = check_pos(robots,rsize,s)
+        pos = check_pos(robots,size,s)
         total_robots = sum(pos.values())
         threshold = 0.3 * total_robots
         if count_blobs(pos)[1] > threshold:
             print('part2:',s)
-            print_tree(pos,rsize)
+            print_tree(pos,size)
             break
 find_tree()
