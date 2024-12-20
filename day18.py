@@ -33,7 +33,32 @@ def find_shortest_path(mapdata):
     end = (mapdata['size'][0]-1,mapdata['size'][1]-1)
     path = nx.astar_path(G,start,end,heuristic=lambda u, v: abs(u[0]-v[0]) + abs(u[1]-v[1]))
     return len(path)-1    
+
+def test_find_first_block():
+    bytedata = read_file_lines('day18-test.txt')
+    assert find_first_block(bytedata,7) == (6,1)
     
-mapdata = load_map(read_file_lines("day18-input.txt"),71,1024)
+def find_first_block(bytedata,size):
+    obstacles = []
+    for byte in bytedata:
+        x,y = byte.split(',')
+        obstacles.append((int(x),int(y)))
+    
+    G = nx.grid_2d_graph(size,size)
+
+    for obstacle in obstacles:
+        G.remove_node(obstacle)
+        start = (0,0)
+        end = (size-1,size-1)
+        if not nx.has_path(G, start, end):
+            return obstacle   
+
+    return None 
+
+    
+mazebytes = read_file_lines("day18-input.txt")    
+mapdata = load_map(mazebytes,71,1024)
 part1 = find_shortest_path(mapdata)
 print('part1:',part1)
+part2 = find_first_block(mazebytes,71)
+print('part2:', part2)
