@@ -1,4 +1,4 @@
-from aoclib import read_file_lines, get_mapsize, in_bounds, tuple_add
+from aoclib import read_file_lines
 import heapq
 
 def test_load_map():
