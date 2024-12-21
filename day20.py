@@ -1,6 +1,10 @@
-from aoclib import read_file_lines,tuple_add
+from aoclib import read_file_lines
 import networkx as nx
-import collections
+import time
+import scipy.spatial
+import numpy as np
+from collections import deque
+
 
 def test_load_map():
     testdata = read_file_lines("day20-test.txt")
@@ -25,11 +29,60 @@ def load_map(lines):
 def test_build_lookup_table():
     mapdata = load_map(read_file_lines("day20-test.txt"))
     assert build_lookup_table(mapdata) == {(7, 5): 0, (7, 4): 1, (7, 3): 2, (8, 3): 3, (9, 3): 4, (9, 2): 5, (9, 1): 6, (10, 1): 7, (11, 1): 8, (12, 1): 9, (13, 1): 10, (13, 2): 11, (13, 3): 12, (12, 3): 13, (11, 3): 14, (11, 4): 15, (11, 5): 16, (12, 5): 17, (13, 5): 18, (13, 6): 19, (13, 7): 20, (12, 7): 21, (11, 7): 22, (10, 7): 23, (9, 7): 24, (9, 8): 25, (9, 9): 26, (10, 9): 27, (11, 9): 28, (12, 9): 29, (13, 9): 30, (13, 10): 31, (13, 11): 32, (12, 11): 33, (11, 11): 34, (11, 12): 35, (11, 13): 36, (10, 13): 37, (9, 13): 38, (9, 12): 39, (9, 11): 40, (8, 11): 41, (7, 11): 42, (7, 12): 43, (7, 13): 44, (6, 13): 45, (5, 13): 46, (5, 12): 47, (5, 11): 48, (4, 11): 49, (3, 11): 50, (3, 12): 51, (3, 13): 52, (2, 13): 53, (1, 13): 54, (1, 12): 55, (1, 11): 56, (1, 10): 57, (1, 9): 58, (2, 9): 59, (3, 9): 60, (4, 9): 61, (5, 9): 62, (6, 9): 63, (7, 9): 64, (7, 8): 65, (7, 7): 66, (6, 7): 67, (5, 7): 68, (4, 7): 69, (3, 7): 70, (2, 7): 71, (1, 7): 72, (1, 6): 73, (1, 5): 74, (2, 5): 75, (3, 5): 76, (3, 4): 77, (3, 3): 78, (2, 3): 79, (1, 3): 80, (1, 2): 81, (1, 1): 82, (2, 1): 83, (3, 1): 84}
-    
+
+
+def order_points(mapdata):
+    S = mapdata['S']
+    E = mapdata['E']
+    points = set(mapdata['.'])
+
+    # Initialize the queue with the starting point S
+    queue = deque([S])
+
+    # Initialize the ordered points list
+    ordered_points = []
+
+    # Perform BFS
+    while queue:
+        point = queue.popleft()
+        ordered_points.append(point)
+
+        # Add neighbors to the queue
+        for neighbor in get_neighbors(point, points):
+            if neighbor not in ordered_points:
+                queue.append(neighbor)
+
+    return ordered_points
+
+def get_neighbors(point, points):
+    x, y = point
+    neighbors = []
+    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        nx, ny = x + dx, y + dy
+        if (nx, ny) in points:
+            neighbors.append((nx, ny))
+    return neighbors
+
+def calculate_distances(ordered_points, E):
+    distances = {}
+    for i, point in enumerate(ordered_points):
+        distances[point] = len(ordered_points) - i - 1
+    return distances
+
 def build_lookup_table(mapdata):
+    start_time = time.time()
+
+    ordered_points = order_points(mapdata)
+    distances = calculate_distances(ordered_points, mapdata['E'])
+    finish_time = time.time()
+    print(f"Lookup table built in {finish_time - start_time:.2f} seconds")
+    return distances
+
+def build_lookup_table_old(mapdata):
     lookup = {}
     points = mapdata['.']
-    
+    start_time = time.time()
+
     G = nx.Graph()
     G.add_nodes_from(points)
 
@@ -42,13 +95,19 @@ def build_lookup_table(mapdata):
     path.reverse()
     for x in path:
         lookup[x] = path.index(x)
+    lookup_time = time.time() - start_time
+    print(f"Lookup table built in {lookup_time:.2f} seconds")
     return lookup
     
+
+
 def test_find_pairs():
     testdata = load_map(read_file_lines("day20-test.txt"))
     assert len(find_pairs(testdata,2)) == 127
     
-def find_pairs(mapdata, n=2):
+def find_pairs_old(mapdata, n=2):
+    start_time = time.time()
+
     points = mapdata['.']
     pairs = []
     for i in range(len(points)):
@@ -58,6 +117,29 @@ def find_pairs(mapdata, n=2):
                 if (points[i], points[j]) not in pairs and (points[j], points[i]) not in pairs:
                     pairs.append((points[i], points[j]))
     print(len(pairs))
+    pair_time = time.time() - start_time
+    print(f"Pair set built in {pair_time:.2f} seconds")
+    return pairs
+
+def find_pairs(mapdata, n=2):
+    start_time = time.time()
+    points = mapdata['.']
+    pairs = set()
+
+    # Use a k-d tree to quickly find nearby points
+    kdtree = scipy.spatial.KDTree(points)
+
+    for i, point in enumerate(points):
+        # Find all points within a distance of n
+        nearby_points = kdtree.query_ball_point(point, n)
+        for nearby_index in nearby_points:
+            if nearby_index != i:  # skip the point itself
+                nearby_point = points[nearby_index]
+                distance = abs(point[0] - nearby_point[0]) + abs(point[1] - nearby_point[1])
+                if 2 <= distance <= n:
+                    pairs.add(tuple(sorted((point, nearby_point))))
+    end_time = time.time()
+    print(f"Pair set built in {end_time - start_time:.2f} seconds")
     return pairs
 
 def test_calc_cheat():
@@ -65,7 +147,8 @@ def test_calc_cheat():
     assert calc_cheat(testdata,2,1) == 44
     assert calc_cheat(testdata,20,50) == 285
     
-def calc_cheat(mapdata,n,threshold):
+def calc_cheat_old(mapdata,n,threshold):
+    start_time = time.time()
     lookup = build_lookup_table(mapdata)
     pairs = find_pairs(mapdata, n)
     cheats = []
@@ -74,7 +157,28 @@ def calc_cheat(mapdata,n,threshold):
         cheat_distance = abs(lookup[pair[0]] - lookup[pair[1]]) - manhattan
         if cheat_distance >= threshold:
             cheats.append(cheat_distance)
+    finish_time = time.time()
+    print(f"Cheats calculated in {finish_time - start_time:.2f} seconds")
     return len(cheats)
+
+def calc_cheat(mapdata,n,threshold):
+    start_time = time.time()
+    lookup = build_lookup_table(mapdata)
+    pairs = find_pairs(mapdata, n)
+
+    pair0 = np.array([pair[0] for pair in pairs])
+    pair1 = np.array([pair[1] for pair in pairs])
+
+    manhattan = np.abs(pair0[:, 0] - pair1[:, 0]) + np.abs(pair0[:, 1] - pair1[:, 1])
+    lookup0 = np.array([lookup[tuple(x)] for x in pair0])
+    lookup1 = np.array([lookup[tuple(x)] for x in pair1])
+    cheat_distance = np.abs(lookup0 - lookup1) - manhattan
+
+    cheats = np.where(cheat_distance >= threshold, cheat_distance, 0)
+
+    finish_time = time.time()
+    print(f"Cheats calculated in {finish_time - start_time:.2f} seconds")
+    return np.count_nonzero(cheats)
 
 mapdata = load_map(read_file_lines("day20-input.txt"))
 part1 = calc_cheat(mapdata,2,100)
